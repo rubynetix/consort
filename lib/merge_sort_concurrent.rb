@@ -23,7 +23,7 @@ class MergeSortConcurrent
     until que.empty?
       e, i = que.deq
       @result_buf << e
-      unless @buffers[i].num_waiting.zero?
+      unless @buffers[i].empty? and not @workers[i].alive?
         que << [@buffers[i].pop, i]
       end
     end
@@ -33,7 +33,7 @@ private
 
   def init_lower
     # Level right above sort workers
-    @buffers = Array.new((@data.size / @min).ceil, SizedQueue.new(@min))
+    @buffers = Array.new((@data.size.to_f / @min).ceil) { SizedQueue.new(@min) }
 
     @workers = @buffers.map.with_index do |buf, i|
       start_index = i * @min
@@ -45,9 +45,8 @@ private
   end
 
   def init_upper
-    @buffers = Array.new(@fan_out, SizedQueue.new(@min))
-
-    block_size = @data.size / @fan_out
+    @buffers = Array.new(@fan_out) { SizedQueue.new(@min) }
+    block_size = (@data.size / @fan_out.to_f).ceil
 
     # Children are also concurrent sort workers
     @workers = @buffers.map.with_index do |buf, i|
