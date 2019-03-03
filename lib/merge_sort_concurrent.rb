@@ -16,6 +16,21 @@ class MergeSortConcurrent
     end
   end
 
+  def sort
+    first = @buffers.map.with_index { |buf, i| [buf.pop, i] }
+    que = PQueue.new(first) { |a, b| a[0] < b[0] }
+
+    until que.empty?
+      e, i = que.deq
+      @result_buf << e
+      unless @buffers[i].num_waiting.zero?
+        que << [@buffers[i].pop, i]
+      end
+    end
+  end
+
+private
+
   def init_lower
     # Level right above sort workers
     @buffers = Array.new((@data.size / @min).ceil, SizedQueue.new(@min))
@@ -40,19 +55,6 @@ class MergeSortConcurrent
       end_index = [(i + 1) * block_size, @data.size].min
       Thread.new do
         MergeSortConcurrent.new(@fan_out, @min, @data[start_index...end_index], buf).sort
-      end
-    end
-  end
-
-  def sort
-    first = @buffers.map.with_index { |buf, i| [buf.pop, i] }
-    que = PQueue.new(first) { |a, b| a[0] < b[0] }
-
-    until que.empty?
-      e, i = que.deq
-      @result_buf << e
-      unless @buffers[i].num_waiting.zero?
-        que << [@buffers[i].pop, i]
       end
     end
   end
