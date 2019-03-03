@@ -5,7 +5,7 @@ class SortWorker
     @result_buf = result_buf
   end
 
-  def sort!
+  def sort
     @data.sort!
     @data.each do |e|
       @result_buf << e
