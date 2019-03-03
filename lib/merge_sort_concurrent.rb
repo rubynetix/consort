@@ -34,7 +34,6 @@ private
   def init_lower
     # Level right above sort workers
     @buffers = Array.new((@data.size.to_f / @min).ceil) { SizedQueue.new(@min) }
-    @done = Array.new(@buffers.size, false)
 
     @workers = @buffers.map.with_index do |buf, i|
       start_index = i * @min
@@ -47,7 +46,6 @@ private
 
   def init_upper
     @buffers = Array.new(@fan_out) { SizedQueue.new(@min) }
-    @done = Array.new(@buffers.size, false)
     block_size = (@data.size / @fan_out.to_f).ceil
 
     # Children are also concurrent sort workers
@@ -56,7 +54,6 @@ private
       end_index = [(i + 1) * block_size, @data.size].min
       Thread.new do
         MergeSortConcurrent.new(@fan_out, @min, @data[start_index...end_index], buf).sort
-        @done[i] = true
       end
     end
   end
