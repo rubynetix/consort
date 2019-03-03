@@ -1,6 +1,7 @@
 require_relative 'lib/concurrent_sort'
 
 include ConcurrentSort
-
-out = ConcurrentSort::sort([4, 5, -1, 2, 4])
+test = [-2, 3, 10, -1, -8, 10, -10, 1, 4, -1] # Array.new(10) { rand(-10..10) }
+puts test.to_s
+out = ConcurrentSort::sort(test)
 puts out.to_s

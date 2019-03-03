@@ -45,9 +45,9 @@ private
   end
 
   def init_upper
-    @buffers = Array.new(@fan_out, SizedQueue.new(@min))
-
-    block_size = @data.size / @fan_out
+    num_workers = [@fan_out, (@data.size / @fan_out * @min).ceil].min
+    @buffers = Array.new(num_workers, SizedQueue.new(@min))
+    block_size = @data.size / num_workers
 
     # Children are also concurrent sort workers
     @workers = @buffers.map.with_index do |buf, i|
