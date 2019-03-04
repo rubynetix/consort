@@ -6,8 +6,8 @@ class RLisp
 
   def label(*args); end
 
-  def quote(*args)
-    args[0]
+  def quote(arg)
+    arg
   end
 
   def car(*args); end
@@ -20,24 +20,25 @@ class RLisp
 
   def if(*args); end
 
-  def atom(*args); end
+  def atom(arg)
+    return false if arg.is_a?
+
+    true
+  end
 
   def lambda(*args); end
 
   def eval(e)
     func = e.shift
-    puts func, "\n"
-    puts func.to_s, "\n"
     if !func.equal? :quote
       args = Array.new
       e.each { |item| args.append(eval(item)) }
-      func.instance_exec args
+      send func, args
     else
-      func.instance_exec e
+      send func, e[0]
     end
   end
 end
 
 lisp = RLisp.new
-puts lisp.class.instance_methods.to_s, "\n"
-puts lisp.eval [:quote, [1, 1]]
+puts (lisp.eval [:quote, [1, 1]]).to_s
