@@ -25,10 +25,10 @@ class RLisp
   def lambda(*args); end
 
   def eval(e)
+    func = e.shift
     puts func, "\n"
     puts func.to_s, "\n"
-    func = e.shift
-    if !func.to_s.equal? :quote.to_s
+    if !func.equal? :quote
       args = Array.new
       e.each { |item| args.append(eval(item)) }
       send func args
