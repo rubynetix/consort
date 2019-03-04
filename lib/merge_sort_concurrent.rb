@@ -2,14 +2,46 @@ require_relative 'sort_worker'
 require_relative 'p_queue'
 
 class MergeSortConcurrent
+  MAX_THREADS = 1000
 
-  def initialize(fan_out, min, data, result_buf)
-    @fan_out = fan_out
-    @min = min
+  class << self
+    def optimal_config(len)
+      # Returns a suitable [fan-out, single-thread-threshold]
+      # configuration for sorting 'len' number of objects,
+      # while creating no more than MAX_THREADS threads.
+
+      # TODO: Decide how to prioritize fan-out/threshold
+      [200, 1000]
+    end
+
+    def num_threads(len, fan_out, threshold)
+      workers = (len.to_f / threshold).ceil
+      depth = Math.log(workers, fan_out).ceil
+      threads = 0
+      (0..depth).each {|n| threads += fan_out ** n}
+
+      threads
+    end
+
+    def valid_config?(len, fan_out, threshold)
+      num_threads(len, fan_out, threshold) <= MAX_THREADS
+    end
+  end
+
+  def initialize(data, result_buf, fan_out=nil, min=nil)
     @data = data
     @result_buf = result_buf
 
-    if data.size <= fan_out * min
+    if fan_out.nil? || min.nil?
+      @fan_out, @min = MergeSortConcurrent.optimal_config(data.length)
+    else
+      @fan_out = fan_out
+      @min = min
+    end
+
+    raise InvalidSortConfiguration unless MergeSortConcurrent.valid_config?(@data.length, @fan_out, @min)
+
+    if data.size <= @fan_out * @min
       init_lower
     else
       init_upper
@@ -29,7 +61,7 @@ class MergeSortConcurrent
     end
   end
 
-private
+  private
 
   def init_lower
     # Level right above sort workers
@@ -57,4 +89,6 @@ private
       end
     end
   end
+
+  class InvalidSortConfiguration < StandardError; end
 end
