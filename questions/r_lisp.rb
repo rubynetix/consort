@@ -31,9 +31,9 @@ class RLisp
     if !func.equal? :quote
       args = Array.new
       e.each { |item| args.append(eval(item)) }
-      func args
+      func.instance_exec args
     else
-      func e
+      func.instance_exec e
     end
   end
 end
