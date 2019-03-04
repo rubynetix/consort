@@ -6,10 +6,9 @@ class SortWorker
   end
 
   def sort
-    @data.sort!
+    block_given? ? @data.sort!(&Proc.new) : @data.sort!
     @data.each do |e|
       @result_buf << e
     end
   end
-
 end
