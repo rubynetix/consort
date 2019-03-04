@@ -3,11 +3,12 @@ require_relative 'p_queue'
 
 class MergeSortConcurrent
 
-  def initialize(fan_out, min, data, result_buf)
+  def initialize(fan_out, min, data, result_buf, compare_proc = nil)
     @fan_out = fan_out
     @min = min
     @data = data
     @result_buf = result_buf
+    @comparator = compare_proc
 
     if data.size <= fan_out * min
       init_lower
@@ -17,8 +18,8 @@ class MergeSortConcurrent
   end
 
   def sort
-    first = @buffers.map.with_index { |buf, i| [buf.pop, i] }
-    que = PQueue.new(first) { |a, b| a[0] < b[0] }
+    first = @buffers.map.with_index {|buf, i| [buf.pop, i]}
+    que = PQueue.new(first) {|a, b| @comparator.nil? ? a[0] < b[0] : @comparator.call(a[0], b[0]) < 0}
 
     until que.empty?
       e, i = que.deq
@@ -29,23 +30,25 @@ class MergeSortConcurrent
     end
   end
 
-private
+  private
 
   def init_lower
     # Level right above sort workers
-    @buffers = Array.new((@data.size.to_f / @min).ceil) { SizedQueue.new(@min) }
+    @buffers = Array.new((@data.size.to_f / @min).ceil) {SizedQueue.new(@min)}
 
     @workers = @buffers.map.with_index do |buf, i|
       start_index = i * @min
       end_index = [(i + 1) * @min, @data.size].min
       Thread.new do
-        SortWorker.new(@data[start_index...end_index], buf).sort
+        @comparator.nil? ?
+            SortWorker.new(@data[start_index...end_index], buf).sort :
+            SortWorker.new(@data[start_index...end_index], buf).sort(&@comparator)
       end
     end
   end
 
   def init_upper
-    @buffers = Array.new(@fan_out) { SizedQueue.new(@min) }
+    @buffers = Array.new(@fan_out) {SizedQueue.new(@min)}
     block_size = (@data.size / @fan_out.to_f).ceil
 
     # Children are also concurrent sort workers
@@ -53,7 +56,7 @@ private
       start_index = i * block_size
       end_index = [(i + 1) * block_size, @data.size].min
       Thread.new do
-        MergeSortConcurrent.new(@fan_out, @min, @data[start_index...end_index], buf).sort
+        MergeSortConcurrent.new(@fan_out, @min, @data[start_index...end_index], buf, @comparator).sort
       end
     end
   end
