@@ -12,7 +12,7 @@ class RLispTest < Test::Unit::TestCase
   def assert_invariants; end
 
   def test_label
-    @l.eval [:label, :x, 15]
+    assert_equal(15, @l.eval([:label, :x, 15]) )
     assert_equal(@l.eval(:x), 15)
     assert_false(@l.eval([:eq, 17, :x]))
     assert_true(@l.eval([:eq, 15, :x]))
