@@ -1,9 +1,10 @@
 require 'test/unit'
+require 'benchmark'
 require_relative '../lib/concurrent_sort'
 require_relative 'utils/car'
 
 class MergeSortTest < Test::Unit::TestCase
-  TEST_ITER = 10
+  TEST_ITER = 1
   MIN_VAL = -10_000
   MAX_VAL = 10_000
   MAX_LEN = 100_000
@@ -86,6 +87,24 @@ class MergeSortTest < Test::Unit::TestCase
         assert_equal(arr_orig, arr, "Error: original array was modified")
         assert_sorted(sorted_arr) {|first, second| assert_true(first.wheels <= second.wheels, "Cars not sorted: #{first.wheels} wheels is not >= #{second.wheels} wheels")}
       end
+    end
+  end
+
+  def test_benchmark
+    arr = rand_int_array(size: MAX_LEN)
+
+    reg_time = Benchmark.measure do
+      arr.sort
+    end
+
+    conc_time = Benchmark.measure do
+      ConcurrentSort.sort(arr)
+    end
+
+    if conc_time.total > reg_time.total
+      warn "Warning: Slower than regular sorting"
+      warn "Regular: #{reg_time}"
+      warn "Concurrent: #{conc_time}"
     end
   end
 end
