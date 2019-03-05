@@ -39,6 +39,3 @@ class RLisp
     end
   end
 end
-
-lisp = RLisp.new
-puts (lisp.eval [:quote, [1, 1]]).to_s
