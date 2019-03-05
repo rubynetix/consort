@@ -1,14 +1,12 @@
 # Ruby lisp
 class RLisp
+
   def initialize
-    # RLISP!
     @labels = Hash.new
   end
 
-  def label(*args)
-    raise ArgumentError unless args.size == 2
-
-    @labels[args[0]] = args[1]
+  def label(args)
+    @labels[args[0].dup] = args[1].dup
   end
 
   def quote(arg)
@@ -48,15 +46,20 @@ class RLisp
   def lambda(*args); end
 
   def eval(e)
+    return @labels[e] if @labels.include? e
     return e if atom(e)
 
     func = e.shift
-    if !func.equal? :quote
+    puts func
+    if func.equal? :quote
+      send func, e[0]
+    elsif self.class.instance_methods.to_s.include? func.to_s
       args = Array.new
       e.each { |item| args.append(eval(item)) }
-      send func, args
+      puts args.to_s
+      return send func, args
     else
-      send func, e[0]
+      e
     end
   end
 end
