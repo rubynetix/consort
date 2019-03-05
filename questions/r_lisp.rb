@@ -25,7 +25,14 @@ class RLisp
     end
   end
 
-  def if(*args); end
+  def if(args)
+    raise ArgumentError, 'Incorrect number of arguments (' + args.size().to_s + ' for 3)' if args.size() != 3
+    if eval(args[0])
+      eval(args[1])
+    else
+      eval(args[2])
+    end
+  end
 
   def atom(arg)
     if arg.is_a? Array
