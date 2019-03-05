@@ -1,10 +1,11 @@
 require 'test/unit'
 require 'benchmark'
 require_relative '../lib/concurrent_sort'
+require_relative '../lib/merge_sort_concurrent'
 require_relative 'utils/car'
 
 class MergeSortTest < Test::Unit::TestCase
-  TEST_ITER = 1
+  TEST_ITER = 10
   MIN_VAL = -10_000
   MAX_VAL = 10_000
   MAX_LEN = 100_000
@@ -105,6 +106,25 @@ class MergeSortTest < Test::Unit::TestCase
       warn "Warning: Slower than regular sorting"
       warn "Regular: #{reg_time}"
       warn "Concurrent: #{conc_time}"
+    end
+  end
+
+  def test_too_many_threads
+    TEST_ITER.times do
+      arr = rand_int_array(size: MAX_LEN)
+      fan_out = 2
+      threshold = 1
+
+      # Preconditions
+      begin
+        assert_true(MergeSortConcurrent.num_threads(arr.length, fan_out, threshold) > MergeSortConcurrent::MAX_THREADS)
+      end
+
+      assert_raise(MergeSortConcurrent::InvalidSortConfiguration) { MergeSortConcurrent.new(arr, [], fan_out: fan_out, min: threshold)}
+
+      # Postconditions
+      begin
+      end
     end
   end
 end

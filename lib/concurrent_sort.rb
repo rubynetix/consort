@@ -6,9 +6,6 @@ class DifferentTypeError < TypeError; end
 module ConcurrentSort
   extend self
 
-  FAN_OUT = 200
-  MIN = 1000
-
   def stream_sort; end
 
   # Optional block: if passed, must implement a comparison between
@@ -24,7 +21,7 @@ module ConcurrentSort
     raise DifferentTypeError unless data[0].class == data[1].class
 
     result_buf = []
-    MergeSortConcurrent.new(FAN_OUT, MIN, data, result_buf, block_given? ? Proc.new : nil).sort
+    MergeSortConcurrent.new(data, result_buf, block_given? ? Proc.new : nil).sort
     result_buf
   end
 end
