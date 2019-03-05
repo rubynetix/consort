@@ -1,25 +1,41 @@
 # Ruby lisp
 class RLisp
-  def initialize()
+  def initialize
     # RlISP!
   end
 
+  def label(*args); end
 
-  def label(l1, l2, l3); end
+  def quote(arg)
+    arg
+  end
 
-  def quote(l); end
+  def car(*args); end
 
-  def car(l); end
+  def cdr(*args); end
 
-  def cdr(l); end
+  def cons(*args); end
 
-  def cons(l); end
+  def eq(*args); end
 
-  def eq(e1, e2); end
+  def if(*args); end
 
-  def if(c, s1, s2); end
+  def atom(arg)
+    return false if arg.is_a?
 
-  def atom(e); end
+    true
+  end
 
-  def lambda(l0, l1, l2); end
+  def lambda(*args); end
+
+  def eval(e)
+    func = e.shift
+    if !func.equal? :quote
+      args = Array.new
+      e.each { |item| args.append(eval(item)) }
+      send func, args
+    else
+      send func, e[0]
+    end
+  end
 end
