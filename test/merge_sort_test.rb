@@ -30,54 +30,60 @@ class MergeSortTest < Test::Unit::TestCase
   def test_stream_sort; end
 
   def test_sort
-    (0..TEST_ITER).each do
+    TEST_ITER.times.each do
       arr = rand_int_array
+      arr_orig = arr.dup
 
       # Preconditions
       begin
-        arr.each {|el| el.is_a?(Comparable)}
+        arr.each {|el| assert_true(el.is_a?(Comparable))}
       end
 
       sorted_arr = ConcurrentSort.sort(arr)
 
       # Postconditions
       begin
+        assert_equal(arr_orig, arr, "Error: original array was modified")
         assert_sorted(sorted_arr) {|first, second| assert_true(first <= second, "Array not sorted: failed #{first} is not <= #{second}")}
       end
     end
   end
 
   def test_sort_block
-    (0..TEST_ITER).each do
+    TEST_ITER.times do
       arr = rand_int_array
+      arr_orig = arr.dup
 
       # Preconditions
       begin
-        arr.each {|el| el.is_a?(Comparable)}
+        arr.each {|el| assert_true(el.is_a?(Comparable))}
       end
 
       sorted_arr = ConcurrentSort.sort(arr) {|first, second| -(first <=> second)}
 
       # Postconditions
       begin
+        assert_equal(arr_orig, arr, "Error: original array was modified")
         assert_sorted(sorted_arr) {|first, second| assert_true(first >= second, "Array not sorted: failed #{first} is not >= #{second}")}
       end
     end
   end
 
   def test_sort_custom_obj
-    (0..TEST_ITER).each do
+    TEST_ITER.times do
       arr = rand_array {Car.new}
+      arr_orig = arr.dup
 
       # Preconditions
       begin
-        arr.each {|el| el.is_a?(Comparable)}
+        arr.each {|el| assert_true(el.is_a?(Comparable))}
       end
 
       sorted_arr = ConcurrentSort.sort(arr)
 
       # Postconditions
       begin
+        assert_equal(arr_orig, arr, "Error: original array was modified")
         assert_sorted(sorted_arr) {|first, second| assert_true(first.wheels <= second.wheels, "Cars not sorted: #{first.wheels} wheels is not >= #{second.wheels} wheels")}
       end
     end
