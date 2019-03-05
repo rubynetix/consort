@@ -12,7 +12,7 @@ module ConcurrentSort
   # See: https://ruby-doc.org/core-2.5.0/Array.html#method-i-sort
   def sort(data)
     result_buf = []
-    MergeSortConcurrent.new(data, result_buf).sort
+    MergeSortConcurrent.new(data, result_buf, block_given? ? Proc.new : nil).sort
     result_buf
   end
 end

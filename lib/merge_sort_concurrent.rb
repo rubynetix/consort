@@ -2,18 +2,11 @@ require_relative 'sort_worker'
 require_relative 'p_queue'
 
 class MergeSortConcurrent
-  MAX_THREADS = 1000
+  MAX_THREADS = 2000
+  FAN_OUT = 200
+  MIN = 1000
 
   class << self
-    def optimal_config(len)
-      # Returns a suitable [fan-out, single-thread-threshold]
-      # configuration for sorting 'len' number of objects,
-      # while creating no more than MAX_THREADS threads.
-
-      # TODO: Decide how to prioritize fan-out/threshold
-      [200, 1000]
-    end
-
     def num_threads(len, fan_out, threshold)
       workers = (len.to_f / threshold).ceil
       depth = Math.log(workers, fan_out).ceil
@@ -28,19 +21,16 @@ class MergeSortConcurrent
     end
   end
 
-  def initialize(data, result_buf, compare_proc = nil, fan_out=nil, min=nil)
+  def initialize(data, result_buf, compare_proc = nil, fan_out: FAN_OUT, min: MIN)
+    @min = min
     @data = data
+    @fan_out = fan_out
     @result_buf = result_buf
     @comparator = compare_proc
 
-    if fan_out.nil? || min.nil?
-      @fan_out, @min = MergeSortConcurrent.optimal_config(data.length)
-    else
-      @fan_out = fan_out
-      @min = min
+    unless MergeSortConcurrent.valid_config?(@data.length, @fan_out, @min)
+      raise InvalidSortConfiguration.new("Concurrent sort requires too many threads. The fan-out/single-thread-threshold can be tuned manually.")
     end
-
-    raise InvalidSortConfiguration unless MergeSortConcurrent.valid_config?(@data.length, @fan_out, @min)
 
     if data.size <= @fan_out * @min
       init_lower
@@ -88,7 +78,7 @@ class MergeSortConcurrent
       start_index = i * block_size
       end_index = [(i + 1) * block_size, @data.size].min
       Thread.new do
-        MergeSortConcurrent.new(@fan_out, @min, @data[start_index...end_index], buf, @comparator).sort
+        MergeSortConcurrent.new(@data[start_index...end_index], buf, @comparator, fan_out: @fan_out, min: @min).sort
       end
     end
   end
