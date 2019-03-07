@@ -1,6 +1,5 @@
 # Ruby lisp
 class RLisp
-
   def initialize
     @labels = Hash.new
   end
@@ -10,7 +9,6 @@ class RLisp
   end
 
   def quote(arg)
-    puts arg.to_s
     arg
   end
 
@@ -35,11 +33,7 @@ class RLisp
 
   def eq(args)
     raise ArgumentError, 'Incorrect number of arguments (' + args.size().to_s + ' for 2)' if args.size() != 2
-    if args[0] == args[1]
-      true
-    else
-      false
-    end
+    args[0] == args[1]
   end
 
   def if(args)
@@ -52,11 +46,9 @@ class RLisp
   end
 
   def atom(arg)
-    if arg.is_a? Array
-      return false
-    elsif arg.is_a? Symbol
-      return false
-    end
+    return false if arg.is_a? Array
+    return false if self.class.instance_methods(false).to_s.include? arg.to_s
+
     true
   end
 
@@ -65,15 +57,13 @@ class RLisp
   def eval(e)
     return @labels[e] if @labels.include? e
     return e if atom(e)
-    puts e.to_s
+
     func = e.shift
-    puts func
     if func.equal? :quote
       send func, e[0]
-    elsif self.class.instance_methods.to_s.include? func.to_s
+    elsif self.class.instance_methods(false).to_s.include? func.to_s
       args = Array.new
       e.each { |item| args.append(eval(item)) }
-      puts args.to_s
       return send func, args
     else
       e
