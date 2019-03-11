@@ -17,7 +17,7 @@ module ConcurrentSort
     return data.dup unless data.size > 1
 
     # Sanity checks on data
-    raise NotComparableError unless data[0].is_a?(Comparable)
+    raise NotComparableError unless block_given? or data[0].is_a?(Comparable)
     raise DifferentTypeError unless data[0].class == data[1].class
     raise InvalidDurationError unless duration > 0
 
