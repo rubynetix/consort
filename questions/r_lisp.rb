@@ -59,7 +59,7 @@ class RLisp
       i = 0
       args[1].each do |e|
         l.eval([:label, e, lam_args[i]])
-        i+=1
+        i += 1
       end
       l.eval(args[2])
     }
@@ -75,13 +75,15 @@ class RLisp
     func = e.shift
     if func.equal? :quote
       send func, e[0]
+    elsif func.equal? :if
+      send func, e
     elsif @labels.include? func
       # func is a lambda function
       r_lambda(@labels[func]).call(e)
     else
       if self.class.instance_methods(false).to_s.include? func.to_s
         args = Array.new
-        e.each { |item| args.append(eval(item)) }
+        e.each {|item| args.append(eval(item))}
         return send func, args
       else
         r_lambda(func).call(e)
