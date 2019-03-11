@@ -43,6 +43,6 @@ class RLispTest < Test::Unit::TestCase
 
   def test_lambda
     @l.eval([:label, :second, [:quote, [:lambda, [:x], [:car, [:cdr, :x]]]]])
-    assert_equal(@l.eval([:second, [:quote, [7, 10, 12]]]), 10)
+    assert_equal(10, @l.eval([:second, [:quote, [7, 10, 12]]]))
   end
 end
