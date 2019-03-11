@@ -8,9 +8,6 @@ public class PickShareFunctional {
 
     public static void findHighPrices(Stream<String> symbolStream){
 
-        // Create a list of ShareInfo filled with the price of each symbol
-        // Trim down this list to a list of shares whose price under $500
-        // Return the highest-price sshare
         ShareInfo largestBoundedShare = symbolStream
                 .map(s -> new ShareInfo(s, GoogleFinance.getPrice(s)))
                 .filter(s -> s.getPrice().compareTo(cutOffPrice) < 0)
@@ -21,7 +18,17 @@ public class PickShareFunctional {
     }
 
     public static void main(String[] args){
+        long startTime = System.currentTimeMillis();
         findHighPrices(Shares.symbols.stream());
+        long duration = System.currentTimeMillis() - startTime;
+
+        System.out.println("Stream execution time (ms): " + duration);
+
+        long startTime2 = System.currentTimeMillis();
+        findHighPrices(Shares.symbols.parallelStream());
+        long duration2 = System.currentTimeMillis() - startTime;
+
+        System.out.println("Parallel stream execution time (ms): " + duration);
     }
 
 }
