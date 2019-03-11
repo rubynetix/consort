@@ -4,7 +4,7 @@ require_relative 'p_queue'
 class MergeSortConcurrent
   MAX_THREADS = 2000
   FAN_OUT = 200
-  MIN = 1000
+  MIN = 10000
 
   class << self
     def num_threads(len, fan_out, threshold)
@@ -49,6 +49,12 @@ class MergeSortConcurrent
       unless @buffers[i].empty? and not @workers[i].alive?
         que << [@buffers[i].pop, i]
       end
+    end
+  end
+
+  def kill_sort
+    @workers.each do |t|
+      Thread.kill(t)
     end
   end
 
