@@ -52,21 +52,40 @@ class RLisp
     true
   end
 
-  def lambda(*args); end
+  def r_lambda(args)
+    raise ArgumentError, 'Incorrect number of arguments (' + args.size().to_s + ' for 3)' if args.size() != 3
+    lam = ->(lam_args) {
+      l = self.dup
+      i = 0
+      args[1].each do |e|
+        l.eval([:label, e, lam_args[i]])
+        i+=1
+      end
+      l.eval(args[2])
+    }
+    lam
+  end
 
   def eval(e)
-    return @labels[e] if @labels.include? e
+    if @labels.include? e
+      return @labels[e]
+    end
     return e if atom(e)
 
     func = e.shift
     if func.equal? :quote
       send func, e[0]
-    elsif self.class.instance_methods(false).to_s.include? func.to_s
-      args = Array.new
-      e.each { |item| args.append(eval(item)) }
-      return send func, args
+    elsif @labels.include? func
+      # func is a lambda function
+      r_lambda(@labels[func]).call(e)
     else
-      e
+      if self.class.instance_methods(false).to_s.include? func.to_s
+        args = Array.new
+        e.each { |item| args.append(eval(item)) }
+        return send func, args
+      else
+        r_lambda(func).call(e)
+      end
     end
   end
 end
